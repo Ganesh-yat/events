@@ -1,28 +1,54 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+import 'react-native-gesture-handler';
+import 'react-native-reanimated';
+import { enableScreens } from 'react-native-screens';
+enableScreens();
+import React, { useEffect, useState } from "react";
+import { View, ActivityIndicator, StyleSheet, StatusBar } from "react-native";
+import { NavigationContainer } from "@react-navigation/native";
+import { GlobalProvider, useGlobalInfo } from "./src/context/GlobalContext";
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import AuthNavigator from "./src/navigation/AuthNavigator";
+import MainAppNavigator from "./src/navigation/MainAppNavigator";
 
-import { NewAppScreen } from '@react-native/new-app-screen';
-import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
+function Root() {
+  const [loading, setLoading] = useState(true);
+  const { colors, isLoggedIn } = useGlobalInfo();
 
-function App() {
-  const isDarkMode = useColorScheme() === 'dark';
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 3000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading) {
+    return (
+      <View style={[styles.loader, { backgroundColor: colors.background }]}>
+        <StatusBar barStyle={colors.background === "#fff" ? "dark-content" : "light-content"} />
+        <ActivityIndicator size="large" color={colors.button} />
+      </View>
+    );
+  }
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <NewAppScreen templateFileName="App.tsx" />
-    </View>
+    <NavigationContainer>
+      {isLoggedIn ? <MainAppNavigator /> : <AuthNavigator />}
+    </NavigationContainer>
+  );
+}
+
+export default function App() {
+  return (
+    <GlobalProvider>
+      <GestureHandlerRootView >
+        <Root />
+      </GestureHandlerRootView>
+    </GlobalProvider>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  loader: {
     flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
-
-export default App;
