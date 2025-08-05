@@ -10,6 +10,7 @@ type GlobalContextType = {
     user: string | null;
     userId: string | null;
     userType: string | null;
+    token: string | null;
     // Theme
     theme: ThemeType;
     colors: typeof Colors["light"];
@@ -20,7 +21,8 @@ type GlobalContextType = {
     changeUserId: (id: string | null) => void;
     changeUserType: (type: string | null) => void;
     changeTheme: (theme: ThemeType) => void;
-    changeEvent: (event: string) => void
+    changeEvent: (event: string) => void;
+    changeToken: (token: string | null) => void;
 };
 
 const defaultContext: GlobalContextType = {
@@ -31,12 +33,14 @@ const defaultContext: GlobalContextType = {
     colors: Colors.light,
     event: "",
     user: "",
+    token: null,
     changeIsLoggedIn: () => { },
     changeUserId: () => { },
     changeUserType: () => { },
     changeTheme: () => { },
     changeEvent: () => { },
     changeUser: () => { },
+    changeToken: () => { },
 };
 
 const GlobalContext = createContext<GlobalContextType>(defaultContext);
@@ -56,14 +60,16 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
     const [userType, setUserType] = useState<string | null>(null);
     const [event, setEvent] = useState<string | null>("");
     const [user, setUser] = useState<string | null>("");
+    const [token, setToken] = useState<string | null>(null);
 
     // Setters
     const changeIsLoggedIn = (v: boolean) => setIsLoggedIn(v);
     const changeUserId = (id: string | null) => setUserId(id);
     const changeUserType = (type: string | null) => setUserType(type);
     const changeTheme = (newTheme: ThemeType) => setTheme(newTheme);
-    const changeEvent = (newEventId: string) => setEvent(newEventId)
-    const changeUser = (newUserData: string) => setUser(newUserData)
+    const changeEvent = (newEventId: string) => setEvent(newEventId);
+    const changeUser = (newUserData: string | null) => setUser(newUserData);
+    const changeToken = (newToken: string | null) => setToken(newToken);
 
     const colors = Colors[theme];
 
@@ -77,12 +83,14 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
                 theme,
                 colors,
                 event,
+                token,
                 changeIsLoggedIn,
                 changeUser,
                 changeUserId,
                 changeUserType,
                 changeTheme,
                 changeEvent,
+                changeToken,
             }}
         >
             {children}

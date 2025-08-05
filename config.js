@@ -2,7 +2,7 @@
 
 // export const API_URL = 'http://192.168.1.3:3000';
 
-export const API_ROUTE = 'https://event-management.livetaskflow.com';
+export const API_ROUTE = 'http://157.245.96.192/api/';
 
 
 export const CLOUD_NAME = "dovrpnbxe"

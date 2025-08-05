@@ -15,7 +15,7 @@ import { API_ROUTE } from "../../../config";
 import { useGlobalInfo } from "../../context/GlobalContext";
 
 const LoginScreen: React.FC = () => {
-    const { colors, changeIsLoggedIn, changeUser, changeUserType, changeUserId } = useGlobalInfo();
+    const { colors, changeIsLoggedIn, changeUser, changeUserType, changeUserId, changeToken } = useGlobalInfo();
     const navigation = useNavigation();
 
     const [email, setEmail] = useState("");
@@ -84,10 +84,12 @@ const LoginScreen: React.FC = () => {
                 if (userTypeFromApi) {
                     console.log(data, "login-api-resp");
 
+                    // Save token to global context
+                    changeToken(data?.data?.token);
                     changeUserType(userTypeFromApi);
                     changeIsLoggedIn(true);
                     changeUserId(data?.data?.existingUser?._id);
-                    changeUser(data?.data)
+                    changeUser(data?.data?.existingUser?.name || "");
                     console.log("userData", data?.data)
                     // navigation.navigate('Dashboard' as never); // Use 'replace' or 'navigate' as per your flow
                 } else {
