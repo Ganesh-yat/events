@@ -12,6 +12,7 @@ import { Colors } from '../../../constants/Colors';
 import { useGlobalInfo } from '../../../context/GlobalContext';
 import { API_ROUTE } from '../../../../config';
 import { Dimensions } from "react-native";
+import QRCodeDisplay from '../../../components/QRCodeDisplay';
 
 export default function Participants() {
     const { event: eventId, theme, token } = useGlobalInfo();
@@ -28,6 +29,8 @@ export default function Participants() {
     const [loading, setLoading] = useState(false);
 
     const [filter, setFilter] = useState('All');
+    const [qrCodeData, setQrCodeData] = useState(null);
+    const [showQRModal, setShowQRModal] = useState(false);
     const { height } = Dimensions.get('window');
 
     useEffect(() => {
@@ -100,6 +103,28 @@ export default function Participants() {
         row.entryTime?.length && row.exitTime?.length &&
         row.entryTime[0] !== '00:00' && row.exitTime[0] !== '00:00';
 
+    const handleShowQRCode = async (participantId) => {
+        try {
+            // Create authenticated headers
+            const headers: Record<string, string> = {
+                "Content-Type": "application/json",
+            };
+            if (token) {
+                headers["Authorization"] = `Bearer ${token}`;
+            }
+
+            const response = await fetch(`${API_ROUTE}/api/v1/event/form-submission/${participantId}`, { headers });
+            if (!response.ok) {
+                throw new Error('Failed to fetch QR code data');
+            }
+            const data = await response.json();
+            setQrCodeData(data);
+            setShowQRModal(true);
+        } catch (error) {
+            console.error('Error fetching QR code:', error);
+        }
+    };
+
     const filtered = participants.filter(row => {
         if (filter === 'All') return true;
         if (filter === 'Present') return isPresent(row);
@@ -108,7 +133,8 @@ export default function Participants() {
     });
 
     return (
-        <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
+        <>
+            <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
             {!eventId ? (
                 <Text style={[styles.subtitle, { color: colors.cancelButton }]}>No event selected.</Text>
             ) : formExists === null ? (
@@ -194,6 +220,7 @@ export default function Participants() {
                             <Text style={[styles.tableCellHeader, { color: colors.text }]}>Exit Time</Text>
                             <Text style={[styles.tableCellHeader, { color: colors.text }]}>Gift</Text>
                             <Text style={[styles.tableCellHeader, { color: colors.text }]}>Food</Text>
+                            <Text style={[styles.tableCellHeader, { color: colors.text }]}>QR Code</Text>
                         </View>
                         <ScrollView style={{ maxHeight: height * 0.5 }}>
                             {loading ? (
@@ -260,6 +287,14 @@ export default function Participants() {
                                         ]}>
                                             {row.food == null ? '—' : row.food ? 'YES' : 'NO'}
                                         </Text>
+                                        <TouchableOpacity
+                                            style={[styles.qrButton, { backgroundColor: colors.button }]}
+                                            onPress={() => handleShowQRCode(row._id)}
+                                        >
+                                            <Text style={[styles.qrButtonText, { color: colors.buttonText }]}>
+                                                QR
+                                            </Text>
+                                        </TouchableOpacity>
                                     </View>
                                 ))
                             )}
@@ -306,7 +341,19 @@ export default function Participants() {
                     </View>
                 </>
             )}
-        </ScrollView>
+            </ScrollView>
+            
+            {/* QR Code Modal */}
+            <QRCodeDisplay
+                visible={showQRModal}
+                onClose={() => setShowQRModal(false)}
+                qrCodeUrl={qrCodeData?.qrcodeUrl}
+                qrCodeData={qrCodeData?.qrcode}
+                participantName={qrCodeData?.responses?.find(r => r.fieldId.includes('email'))?.value || 'Participant'}
+                ticketId={qrCodeData?.ticket?.ticketId}
+                tierName={qrCodeData?.ticket?.tierName}
+            />
+        </>
     );
 }
 
@@ -370,6 +417,18 @@ const styles = StyleSheet.create({
     },
     pageLabel: {
         fontSize: 14,
+        fontWeight: 'bold',
+    },
+    qrButton: {
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 4,
+        alignItems: 'center',
+        justifyContent: 'center',
+        minWidth: 40,
+    },
+    qrButtonText: {
+        fontSize: 12,
         fontWeight: 'bold',
     },
 });

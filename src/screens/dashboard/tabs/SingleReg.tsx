@@ -18,6 +18,7 @@ import { useNavigation } from '@react-navigation/native';
 import { Colors } from '../../../constants/Colors';
 import { useGlobalInfo } from '../../../context/GlobalContext';
 import { API_ROUTE } from '../../../../config';
+import QRCodeDisplay from '../../../components/QRCodeDisplay';
 
 export default function SingleParticipation() {
     const { event: eventId, theme, token } = useGlobalInfo();
@@ -31,6 +32,8 @@ export default function SingleParticipation() {
     const [form, setForm] = useState({});
     const [openTier, setOpenTier] = useState(false);
     const [snackbar, setSnackbar] = useState({ visible: false, message: '', error: false });
+    const [qrCodeData, setQrCodeData] = useState(null);
+    const [showQRModal, setShowQRModal] = useState(false);
 
     useEffect(() => {
         if (!eventId) {
@@ -139,10 +142,10 @@ export default function SingleParticipation() {
             })
             .then(data => {
                 setSnackbar({ visible: true, message: 'Ticket successfully created!', error: false });
-                setTimeout(() => {
-                    setSubmitting(false);
-                    navigation.navigate('QrScreen', { participantId: data._id });
-                }, 1400);
+                setSubmitting(false);
+                // Show QR code data
+                setQrCodeData(data);
+                setShowQRModal(true);
             })
             .catch(err => {
                 setSnackbar({ visible: true, message: `Failed: ${err.message}`, error: true });
@@ -429,6 +432,17 @@ export default function SingleParticipation() {
                     </View>
                 )}
             </KeyboardAvoidingView>
+            
+            {/* QR Code Modal */}
+            <QRCodeDisplay
+                visible={showQRModal}
+                onClose={() => setShowQRModal(false)}
+                qrCodeUrl={qrCodeData?.qrcodeUrl}
+                qrCodeData={qrCodeData?.qrcode}
+                participantName={qrCodeData?.responses?.find(r => r.fieldId.includes('email'))?.value || 'Participant'}
+                ticketId={qrCodeData?.ticket?.ticketId}
+                tierName={qrCodeData?.ticket?.tierName}
+            />
         </SafeAreaView>
     );
 }
