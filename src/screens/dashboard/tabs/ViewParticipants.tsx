@@ -71,6 +71,14 @@ export default function Participants() {
         if (!eventId || !formExists) return;
         setLoading(true);
 
+        // Create authenticated headers
+        const headers: Record<string, string> = {
+            "Content-Type": "application/json",
+        };
+        if (token) {
+            headers["Authorization"] = `Bearer ${token}`;
+        }
+
         const params = new URLSearchParams({
             eventId,
             page: page.toString(),
@@ -86,7 +94,7 @@ export default function Participants() {
                 setLoading(false);
             })
             .catch(() => setLoading(false));
-    }, [eventId, page, rowsPerPage, searchText, formExists]);
+    }, [eventId, page, rowsPerPage, searchText, formExists, token]);
 
     const isPresent = (row) =>
         row.entryTime?.length && row.exitTime?.length &&

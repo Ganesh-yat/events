@@ -52,7 +52,7 @@ const FIELD_TYPES = [
 
 export default function FormBuilder() {
     const context = useGlobalInfo();
-    const { theme } = context;
+    const { theme, token } = context;
     const colors = Colors[theme];
 
     const [fields, setFields] = useState([]);
@@ -89,11 +89,17 @@ export default function FormBuilder() {
                 fields: schema
             };
 
+            // Create authenticated headers
+            const headers: Record<string, string> = {
+                'Content-Type': 'application/json',
+            };
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+            
             const response = await fetch(`${API_ROUTE}/api/v1/even`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers,
                 body: JSON.stringify(body),
             });
 

@@ -54,7 +54,7 @@ const sampleFeedbacks = [
 ];
 
 export default function FeedbackAdmin() {
-    const { theme, event } = useGlobalInfo();
+    const { theme, event, token } = useGlobalInfo();
     const colors = Colors[theme];
     const eventId = event;
 
@@ -66,7 +66,15 @@ export default function FeedbackAdmin() {
     const fetchFeedbacks = async () => {
         try {
             setLoading(true);
-            const res = await fetch(`${API_ROUTE}/api/v1/event/feedback/event/${eventId}`);
+            // Create authenticated headers
+            const headers: Record<string, string> = {
+                "Content-Type": "application/json",
+            };
+            if (token) {
+                headers["Authorization"] = `Bearer ${token}`;
+            }
+            
+            const res = await fetch(`${API_ROUTE}/api/v1/event/feedback/event/${eventId}`, { headers });
             if (!res.ok) throw new Error('Failed to fetch feedbacks');
             const { data } = await res.json();
             setFeedbacks(data || []);

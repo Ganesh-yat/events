@@ -1,4 +1,4 @@
-package com.events
+package com.eventsapp
 
 import android.app.Application
 import com.facebook.react.PackageList

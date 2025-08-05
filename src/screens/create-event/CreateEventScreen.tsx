@@ -38,7 +38,7 @@ import type { MainAppStackParamList } from "../../navigation/MainAppNavigator";
 type Props = NativeStackScreenProps<MainAppStackParamList, "CreateEvent">;
 
 export default function CreateEvent({ route }: Props) {
-    const { theme, userId, event = route } = useGlobalInfo();
+    const { theme, userId, token, event = route } = useGlobalInfo();
     const colors = Colors[theme];
     const navigation = useNavigation();
 
@@ -75,7 +75,15 @@ export default function CreateEvent({ route }: Props) {
             if (event) {
                 try {
                     const id = event;
-                    const res = await fetch(`${API_ROUTE}/api/v1/event/eventid/${id}`);
+                    // Create authenticated headers
+                const headers: Record<string, string> = {
+                    "Content-Type": "application/json",
+                };
+                if (token) {
+                    headers["Authorization"] = `Bearer ${token}`;
+                }
+                
+                const res = await fetch(`${API_ROUTE}/api/v1/event/eventid/${id}`, { headers });
                     if (!res.ok) throw new Error("Failed to fetch event data");
                     const resData = await res.json();
                     const data = resData?.data;
@@ -255,9 +263,17 @@ export default function CreateEvent({ route }: Props) {
             ? `${API_ROUTE}/api/v1/event/${userId}/${eventId}`
             : `${API_ROUTE}/api/v1/event`;
         const method = isEdit ? "PATCH" : "POST";
+        // Create authenticated headers
+        const headers: Record<string, string> = {
+            "Content-Type": "application/json",
+        };
+        if (token) {
+            headers["Authorization"] = `Bearer ${token}`;
+        }
+        
         const response = await fetch(url, {
             method,
-            headers: { "Content-Type": "application/json" },
+            headers,
             body: JSON.stringify(payload),
         });
         if (!response.ok) throw new Error(isEdit ? "Event update failed" : "Event creation failed");

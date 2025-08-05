@@ -6,7 +6,7 @@ import { API_ROUTE } from '../../../config';
 import { useNavigation } from "@react-navigation/native";
 
 export default function Profile() {
-    const { user, changeUser, changeUserId, changeUserType, theme } = useGlobalInfo();
+    const { user, changeUser, changeUserId, changeUserType, theme, token } = useGlobalInfo();
     const colors = Colors[theme];
     const navigation = useNavigation();
 
@@ -52,12 +52,17 @@ export default function Profile() {
 
         setLoading(true);
         try {
+            // Create authenticated headers
+            const headers: Record<string, string> = {
+                'Content-Type': 'application/json',
+            };
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+            
             const res = await fetch(`${API_ROUTE}/api/v1/users/${userId}`, {
                 method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${user?.token}`,
-                },
+                headers,
                 body: JSON.stringify(payload),
             });
             const result = await res.json();
