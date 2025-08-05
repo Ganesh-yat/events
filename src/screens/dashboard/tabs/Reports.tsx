@@ -111,7 +111,7 @@ const summaryData = {
 
 
 export default function Reports() {
-    const { theme, event } = useGlobalInfo();
+    const { theme, event, token } = useGlobalInfo();
     const colors = Colors[theme];
 
     const [summary, setSummary] = useState(null);
@@ -132,17 +132,25 @@ export default function Reports() {
         if (!eventId) return;
         setLoading(true);
 
-        const sumP = fetch(`${API_ROUTE}/api/v1/event/report/event/${eventId}`)
+        // Create authenticated headers
+        const headers: Record<string, string> = {
+            "Content-Type": "application/json",
+        };
+        if (token) {
+            headers["Authorization"] = `Bearer ${token}`;
+        }
+
+        const sumP = fetch(`${API_ROUTE}/api/v1/event/report/event/${eventId}`, { headers })
             .then(r => r.json()).then(j => {
                 if (!j.success) throw new Error(j.message || 'Failed loading summary');
                 return j.data;
             });
 
         const subsP = fetch(
-            `${API_ROUTE}/api/v1/event/participantSearch?eventId=${eventId}&page=1&limit=10000`
+            `${API_ROUTE}/api/v1/event/participantSearch?eventId=${eventId}&page=1&limit=10000`, { headers }
         ).then(r => r.json()).then(j => j.results || []);
 
-        const ticketsP = fetch(`${API_ROUTE}/api/v1/event/tickets/event/${eventId}`)
+        const ticketsP = fetch(`${API_ROUTE}/api/v1/event/tickets/event/${eventId}`, { headers })
             .then(r => r.json()).then(j => {
                 if (!j.success) throw new Error(j.message || 'Failed loading tickets');
                 return j.data;

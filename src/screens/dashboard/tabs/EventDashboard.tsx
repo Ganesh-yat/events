@@ -33,7 +33,7 @@ export default function EventDashboard({ eventId }) {
 
     const context = useGlobalInfo();
     const navigation = useNavigation();
-    const { theme } = context;
+    const { theme, token } = context;
     const colors = Colors[theme];
 
     const id = eventId;
@@ -77,7 +77,15 @@ export default function EventDashboard({ eventId }) {
     useEffect(() => {
         const fetchEvent = async () => {
             try {
-                const res = await fetch(`${API_ROUTE}/api/v1/event/eventid/${id}`);
+                // Create authenticated headers
+                const headers: Record<string, string> = {
+                    "Content-Type": "application/json",
+                };
+                if (token) {
+                    headers["Authorization"] = `Bearer ${token}`;
+                }
+
+                const res = await fetch(`${API_ROUTE}/api/v1/event/eventid/${id}`, { headers });
                 if (!res.ok) throw new Error('Event not found');
                 const data = await res.json();
                 setEvent(data?.data);
@@ -131,8 +139,17 @@ export default function EventDashboard({ eventId }) {
                 {
                     text: "Delete", style: "destructive", onPress: async () => {
                         try {
+                            // Create authenticated headers
+                            const headers: Record<string, string> = {
+                                "Content-Type": "application/json",
+                            };
+                            if (token) {
+                                headers["Authorization"] = `Bearer ${token}`;
+                            }
+
                             const res = await fetch(`${API_ROUTE}/api/v1/event/eventid/${id}`, {
                                 method: 'DELETE',
+                                headers,
                             });
                             if (res.ok) {
                                 showSnackbar('Event deleted!', 'success');
@@ -166,9 +183,17 @@ export default function EventDashboard({ eventId }) {
                 options: validOptions,
                 userId,
             };
+            // Create authenticated headers
+            const headers: Record<string, string> = {
+                'Content-Type': 'application/json',
+            };
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
             const res = await fetch(`${API_ROUTE}/api/v1/event/poll`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers,
                 body: JSON.stringify(payload),
             });
             if (res.ok) {
@@ -204,11 +229,19 @@ export default function EventDashboard({ eventId }) {
 
     const updateEventStatus = async (newStatus) => {
         try {
-            const res = await fetch(`${API_ROUTE}/api/v1/event/eventid/${id}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: newStatus }),
-            });
+                    // Create authenticated headers
+        const headers: Record<string, string> = {
+            'Content-Type': 'application/json',
+        };
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        const res = await fetch(`${API_ROUTE}/api/v1/event/eventid/${id}`, {
+            method: 'PATCH',
+            headers,
+            body: JSON.stringify({ status: newStatus }),
+        });
             if (!res.ok) throw new Error('Failed to update status');
             setEventStatus(newStatus);
             showSnackbar(`Event status updated to ${newStatus}`, 'success');

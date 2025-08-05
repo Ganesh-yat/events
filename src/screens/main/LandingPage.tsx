@@ -13,7 +13,7 @@ import { useNavigation } from "@react-navigation/native";
 import TopNavBar from "../../components/TopNavBar";
 
 const LandingPage = () => {
-    const { userId, changeEvent, theme } = useGlobalInfo();
+    const { userId, changeEvent, theme, token } = useGlobalInfo();
     console.log(userId, "landing page");
     const [events, setEvents] = useState([]);
     const [page, setPage] = useState(0);
@@ -53,7 +53,15 @@ const LandingPage = () => {
 
         const fetchEvents = async () => {
             try {
-                const response = await fetch(`${API_ROUTE}/api/v1/event/userid/${userId}`);
+                // Create authenticated headers
+                const headers: Record<string, string> = {
+                    "Content-Type": "application/json",
+                };
+                if (token) {
+                    headers["Authorization"] = `Bearer ${token}`;
+                }
+
+                const response = await fetch(`${API_ROUTE}/api/v1/event/userid/${userId}`, { headers });
 
                 const result = await response.json();
                 console.log(result);

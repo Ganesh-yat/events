@@ -33,7 +33,8 @@ import {
 } from "react-native";
 import { Colors } from "../../constants/Colors";
 import { useGlobalInfo } from "../../context/GlobalContext";
-import { API_ROUTE } from "../../lib/config";
+import { API_ROUTE } from "../../../config";
+import { useAuthenticatedApi } from "../../lib/Services/api";
 
 type Tier = {
     name: string;
@@ -85,7 +86,7 @@ function Snackbar({ visible, message, error, onDismiss, colors }: any) {
 }
 
 export default function TicketRegistrationForm({ eventName = "Event" }) {
-    const { event: eventId, theme } = useGlobalInfo();
+    const { event: eventId, theme, token } = useGlobalInfo();
     const colors = Colors[theme];
 
     const [tiers, setTiers] = useState<Tier[]>([]);
@@ -97,7 +98,18 @@ export default function TicketRegistrationForm({ eventName = "Event" }) {
     useEffect(() => {
         if (!eventId) return;
         setLoading(true);
-        fetch(`${API_ROUTE}/api/v1/event/ticket-tiers/${eventId}`)
+        
+        // Create authenticated fetch
+        const headers: Record<string, string> = {
+            "Content-Type": "application/json",
+        };
+        if (token) {
+            headers["Authorization"] = `Bearer ${token}`;
+        }
+
+        fetch(`${API_ROUTE}/api/v1/event/ticket-tiers/${eventId}`, {
+            headers,
+        })
             .then((r) => {
                 if (!r.ok) throw new Error("Failed to fetch tiers");
                 return r.json();
@@ -114,7 +126,7 @@ export default function TicketRegistrationForm({ eventName = "Event" }) {
                 setSnackbar({ visible: true, message: "Failed to load ticket tiers.", error: true });
             })
             .finally(() => setLoading(false));
-    }, [eventId]);
+    }, [eventId, token]);
 
     // Handlers
     const handleTierChange = (idx: number, field: keyof Tier, val: string) => {
@@ -156,11 +168,19 @@ export default function TicketRegistrationForm({ eventName = "Event" }) {
                 : t.perks,
         }));
         try {
+            // Create authenticated headers
+            const headers: Record<string, string> = {
+                "Content-Type": "application/json",
+            };
+            if (token) {
+                headers["Authorization"] = `Bearer ${token}`;
+            }
+
             const res = await fetch(
                 `${API_ROUTE}/api/v1/event/ticket-tiers/${eventId}`,
                 {
                     method: "PATCH",
-                    headers: { "Content-Type": "application/json" },
+                    headers,
                     body: JSON.stringify({ ticket_tiers: payload }),
                 }
             );

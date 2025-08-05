@@ -7,7 +7,7 @@ import { API_ROUTE } from '../../../../config';
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
 export default function Polls() {
-    const { theme, userId, event } = useGlobalInfo();
+    const { theme, userId, event, token } = useGlobalInfo();
     const colors = Colors[theme];
     const eventId = event;
 
@@ -55,7 +55,15 @@ export default function Polls() {
         let isMounted = true;
         setLoading(true);
 
-        fetch(`${API_ROUTE}/api/v1/event/poll/event/${eventId}`)
+        // Create authenticated headers
+        const headers: Record<string, string> = {
+            "Content-Type": "application/json",
+        };
+        if (token) {
+            headers["Authorization"] = `Bearer ${token}`;
+        }
+
+        fetch(`${API_ROUTE}/api/v1/event/poll/event/${eventId}`, { headers })
             .then(res => res.json())
             .then(json => {
                 console.log(json, "poollllll")
@@ -119,9 +127,17 @@ export default function Polls() {
         }
         try {
             setLoading(true);
+            // Create authenticated headers
+            const headers: Record<string, string> = {
+                'Content-Type': 'application/json',
+            };
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
             const res = await fetch(`${API_ROUTE}/api/v1/event/poll`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers,
                 body: JSON.stringify({
                     event: eventId,
                     question: newPoll.question.trim(),
@@ -139,7 +155,7 @@ export default function Polls() {
 
             // Refresh polls
             const freshRes = await fetch(
-                `${API_ROUTE}/api/v1/event/poll/event/${eventId}`
+                `${API_ROUTE}/api/v1/event/poll/event/${eventId}`, { headers }
             );
             const freshJson = await freshRes.json();
             if (freshJson.success) {

@@ -14,7 +14,7 @@ import { API_ROUTE } from '../../../../config';
 import { Dimensions } from "react-native";
 
 export default function Participants() {
-    const { event: eventId, theme } = useGlobalInfo();
+    const { event: eventId, theme, token } = useGlobalInfo();
     const colors = Colors[theme];
 
     const [formExists, setFormExists] = useState(null);
@@ -38,7 +38,15 @@ export default function Participants() {
         setFormExists(null);
         setSchema(null);
 
-        fetch(`${API_ROUTE}/api/v1/event/registration-form/eventId/${eventId}`)
+        // Create authenticated headers
+        const headers: Record<string, string> = {
+            "Content-Type": "application/json",
+        };
+        if (token) {
+            headers["Authorization"] = `Bearer ${token}`;
+        }
+
+        fetch(`${API_ROUTE}/api/v1/event/registration-form/eventId/${eventId}`, { headers })
             .then(res => {
                 if (res.status === 404) {
                     setFormExists(false);
@@ -70,7 +78,7 @@ export default function Participants() {
         });
         if (searchText.trim()) params.set('q', searchText.trim());
 
-        fetch(`${API_ROUTE}/api/v1/event/participantSearch?${params}`)
+        fetch(`${API_ROUTE}/api/v1/event/participantSearch?${params}`, { headers })
             .then(r => r.json())
             .then(data => {
                 setParticipants(data.results || []);

@@ -20,7 +20,7 @@ import { useGlobalInfo } from '../../../context/GlobalContext';
 import { API_ROUTE } from '../../../../config';
 
 export default function SingleParticipation() {
-    const { event: eventId, theme } = useGlobalInfo();
+    const { event: eventId, theme, token } = useGlobalInfo();
     const navigation = useNavigation();
     const colors = Colors[theme];
 
@@ -40,9 +40,18 @@ export default function SingleParticipation() {
             return;
         }
         setLoading(true);
+        
+        // Create authenticated headers
+        const headers: Record<string, string> = {
+            "Content-Type": "application/json",
+        };
+        if (token) {
+            headers["Authorization"] = `Bearer ${token}`;
+        }
+
         Promise.all([
-            fetch(`${API_ROUTE}/api/v1/event/registration-form/eventId/${eventId}`).then(r => r.json()),
-            fetch(`${API_ROUTE}/api/v1/event/ticket-tiers/${eventId}`).then(r => r.json()),
+            fetch(`${API_ROUTE}/api/v1/event/registration-form/eventId/${eventId}`, { headers }).then(r => r.json()),
+            fetch(`${API_ROUTE}/api/v1/event/ticket-tiers/${eventId}`, { headers }).then(r => r.json()),
         ])
             .then(([formsRes, tiersRes]) => {
                 let forms = [];
@@ -78,7 +87,7 @@ export default function SingleParticipation() {
                 setTicketTiers([]);
             })
             .finally(() => setLoading(false));
-    }, [eventId]);
+    }, [eventId, token]);
 
     useEffect(() => {
         if (snackbar.visible) {
@@ -102,9 +111,17 @@ export default function SingleParticipation() {
         const responses = schema.fields.map(f => ({ fieldId: f.id, value: form[f.id] }));
         const visitorCount = Number(form.visitorCount) || 0;
 
+        // Create authenticated headers
+        const headers: Record<string, string> = {
+            'Content-Type': 'application/json',
+        };
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+
         fetch(`${API_ROUTE}/api/v1/event/form-submission`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers,
             body: JSON.stringify({
                 eventId,
                 formId: schema._id,
