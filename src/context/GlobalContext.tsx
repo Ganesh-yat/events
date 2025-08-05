@@ -71,7 +71,8 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
     const changeUser = (newUserData: string | null) => setUser(newUserData);
     const changeToken = (newToken: string | null) => setToken(newToken);
 
-    const colors = Colors[theme];
+    // Ensure colors are always defined
+    const colors = Colors[theme] || Colors.light;
 
     return (
         <GlobalContext.Provider
