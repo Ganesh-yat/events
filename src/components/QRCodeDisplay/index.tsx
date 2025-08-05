@@ -9,6 +9,7 @@ import {
     Alert,
     Share,
     Platform,
+    Dimensions,
 } from 'react-native';
 import { useGlobalInfo } from '../../context/GlobalContext';
 import { Colors } from '../../constants/Colors';
@@ -35,6 +36,9 @@ export default function QRCodeDisplay({
     const { theme } = useGlobalInfo();
     const colors = Colors[theme];
 
+    const { width, height } = Dimensions.get('window');
+    const qrSize = Math.min(width, height) * 0.7; // 70% of screen size
+
     const handleShare = async () => {
         try {
             const shareContent = {
@@ -49,15 +53,33 @@ export default function QRCodeDisplay({
         }
     };
 
+    const handleDownload = async () => {
+        try {
+            if (qrCodeUrl) {
+                // For now, we'll share the QR code URL which can be downloaded
+                const shareContent = {
+                    title: 'Download QR Code',
+                    message: 'QR Code for Event Ticket',
+                    url: qrCodeUrl,
+                };
+                await Share.share(shareContent);
+            } else {
+                Alert.alert('Info', 'QR code URL not available for download');
+            }
+        } catch (error) {
+            Alert.alert('Error', 'Failed to download QR code');
+        }
+    };
+
     return (
         <Modal
             visible={visible}
-            transparent={true}
+            transparent={false}
             animationType="slide"
             onRequestClose={onClose}
         >
-            <View style={[styles.modalOverlay, { backgroundColor: 'rgba(0,0,0,0.5)' }]}>
-                <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
+            <View style={[styles.modalOverlay, { backgroundColor: colors.background }]}>
+                <View style={[styles.modalContent, { backgroundColor: colors.background }]}>
                     <View style={styles.header}>
                         <Text style={[styles.title, { color: colors.text }]}>
                             Ticket QR Code
@@ -89,17 +111,17 @@ export default function QRCodeDisplay({
                         {qrCodeUrl ? (
                             <Image
                                 source={{ uri: qrCodeUrl }}
-                                style={styles.qrImage}
+                                style={[styles.qrImage, { width: qrSize, height: qrSize }]}
                                 resizeMode="contain"
                             />
                         ) : qrCodeData ? (
-                            <View style={[styles.qrPlaceholder, { backgroundColor: colors.dropdownBackground }]}>
+                            <View style={[styles.qrPlaceholder, { backgroundColor: colors.dropdownBackground, width: qrSize, height: qrSize }]}>
                                 <Text style={[styles.qrPlaceholderText, { color: colors.secondaryText }]}>
                                     QR Code: {qrCodeData}
                                 </Text>
                             </View>
                         ) : (
-                            <View style={[styles.qrPlaceholder, { backgroundColor: colors.dropdownBackground }]}>
+                            <View style={[styles.qrPlaceholder, { backgroundColor: colors.dropdownBackground, width: qrSize, height: qrSize }]}>
                                 <Text style={[styles.qrPlaceholderText, { color: colors.secondaryText }]}>
                                     No QR Code Available
                                 </Text>
@@ -114,6 +136,15 @@ export default function QRCodeDisplay({
                         >
                             <Text style={[styles.buttonText, { color: colors.buttonText }]}>
                                 Share QR Code
+                            </Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={[styles.downloadButton, { backgroundColor: colors.button }]}
+                            onPress={handleDownload}
+                        >
+                            <Text style={[styles.buttonText, { color: colors.buttonText }]}>
+                                Download QR Code
                             </Text>
                         </TouchableOpacity>
 
@@ -140,11 +171,11 @@ const styles = StyleSheet.create({
         padding: 20,
     },
     modalContent: {
-        borderRadius: 12,
-        padding: 20,
-        width: '90%',
-        maxWidth: 400,
+        flex: 1,
+        justifyContent: 'center',
         alignItems: 'center',
+        padding: 20,
+        width: '100%',
     },
     header: {
         flexDirection: 'row',
@@ -182,13 +213,9 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     qrImage: {
-        width: 200,
-        height: 200,
         borderRadius: 8,
     },
     qrPlaceholder: {
-        width: 200,
-        height: 200,
         borderRadius: 8,
         justifyContent: 'center',
         alignItems: 'center',
@@ -203,6 +230,13 @@ const styles = StyleSheet.create({
         marginTop: 20,
     },
     shareButton: {
+        paddingVertical: 12,
+        paddingHorizontal: 24,
+        borderRadius: 8,
+        marginBottom: 12,
+        alignItems: 'center',
+    },
+    downloadButton: {
         paddingVertical: 12,
         paddingHorizontal: 24,
         borderRadius: 8,

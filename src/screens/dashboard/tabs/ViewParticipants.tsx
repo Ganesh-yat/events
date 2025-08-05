@@ -18,10 +18,10 @@ export default function Participants() {
     const { event: eventId, theme, token } = useGlobalInfo();
     const colors = Colors[theme];
 
-    const [formExists, setFormExists] = useState(null);
-    const [schema, setSchema] = useState(null);
+    const [formExists, setFormExists] = useState<boolean | null>(null);
+    const [schema, setSchema] = useState<any>(null);
 
-    const [participants, setParticipants] = useState([]);
+    const [participants, setParticipants] = useState<any[]>([]);
     const [page, setPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [totalPages, setTotalPages] = useState(1);
@@ -29,7 +29,7 @@ export default function Participants() {
     const [loading, setLoading] = useState(false);
 
     const [filter, setFilter] = useState('All');
-    const [qrCodeData, setQrCodeData] = useState(null);
+    const [qrCodeData, setQrCodeData] = useState<any>(null);
     const [showQRModal, setShowQRModal] = useState(false);
     const { height } = Dimensions.get('window');
 
@@ -99,11 +99,11 @@ export default function Participants() {
             .catch(() => setLoading(false));
     }, [eventId, page, rowsPerPage, searchText, formExists, token]);
 
-    const isPresent = (row) =>
+    const isPresent = (row: any) =>
         row.entryTime?.length && row.exitTime?.length &&
         row.entryTime[0] !== '00:00' && row.exitTime[0] !== '00:00';
 
-    const handleShowQRCode = async (participantId) => {
+    const handleShowQRCode = async (participantId: any) => {
         try {
             // Create authenticated headers
             const headers: Record<string, string> = {
@@ -205,100 +205,102 @@ export default function Participants() {
 
                     {/* Table header */}
                     <View style={{}}>
-
-                        <View style={[
-                            styles.tableHeader,
-                            { backgroundColor: colors.dropdownBackground, borderColor: colors.secondaryText }
-                        ]}>
-                            {schema.fields.map(f => (
-                                <Text key={f.id} style={[styles.tableCellHeader, { color: colors.text }]}>
-                                    {f.label}
-                                </Text>
-                            ))}
-                            <Text style={[styles.tableCellHeader, { color: colors.text }]}>Visitors</Text>
-                            <Text style={[styles.tableCellHeader, { color: colors.text }]}>Entry Time</Text>
-                            <Text style={[styles.tableCellHeader, { color: colors.text }]}>Exit Time</Text>
-                            <Text style={[styles.tableCellHeader, { color: colors.text }]}>Gift</Text>
-                            <Text style={[styles.tableCellHeader, { color: colors.text }]}>Food</Text>
-                            <Text style={[styles.tableCellHeader, { color: colors.text }]}>QR Code</Text>
-                        </View>
-                        <ScrollView style={{ maxHeight: height * 0.5 }}>
-                            {loading ? (
-                                <View style={{ padding: 32, alignItems: 'center' }}>
-                                    <ActivityIndicator color={colors.button} />
+                        <ScrollView horizontal showsHorizontalScrollIndicator={true}>
+                            <View style={{ minWidth: '100%' }}>
+                                <View style={[
+                                    styles.tableHeader,
+                                    { backgroundColor: colors.dropdownBackground, borderColor: colors.secondaryText }
+                                ]}>
+                                    {schema.fields.map((f: any) => (
+                                        <Text key={f.id} style={[styles.tableCellHeader, { color: colors.text }]}>
+                                            {f.label}
+                                        </Text>
+                                    ))}
+                                    <Text style={[styles.tableCellHeader, { color: colors.text }]}>Visitors</Text>
+                                    <Text style={[styles.tableCellHeader, { color: colors.text }]}>Entry Time</Text>
+                                    <Text style={[styles.tableCellHeader, { color: colors.text }]}>Exit Time</Text>
+                                    <Text style={[styles.tableCellHeader, { color: colors.text }]}>Gift</Text>
+                                    <Text style={[styles.tableCellHeader, { color: colors.text }]}>Food</Text>
+                                    <Text style={[styles.tableCellHeader, { color: colors.text }]}>QR Code</Text>
                                 </View>
-                            ) : (
-                                filtered.map((row, idx) => (
-                                    <View key={row._id || idx} style={[
-                                        styles.tableRow,
-                                        { borderColor: colors.dropdownBackground }
-                                    ]}>
-                                        {schema.fields.map(f => {
-                                            const resp = row.responses?.find(r => r.fieldId === f.id);
-                                            let val = resp?.value ?? '';
-                                            if (typeof val === 'boolean') val = val ? 'YES' : 'NO';
-                                            else if (val && typeof val === 'object') {
-                                                const { text, hyperlink } = val;
-                                                if (text && hyperlink) val = text;
-                                                else val = JSON.stringify(val);
-                                            }
-                                            return (
-                                                <Text key={f.id} style={[styles.tableCell, { color: colors.text }]}>
-                                                    {val}
+                                <ScrollView style={{ maxHeight: height * 0.5 }}>
+                                    {loading ? (
+                                        <View style={{ padding: 32, alignItems: 'center' }}>
+                                            <ActivityIndicator color={colors.button} />
+                                        </View>
+                                    ) : (
+                                        filtered.map((row, idx) => (
+                                            <View key={row._id || idx} style={[
+                                                styles.tableRow,
+                                                { borderColor: colors.dropdownBackground }
+                                            ]}>
+                                                                                        {schema.fields.map((f: any) => {
+                                            const resp = row.responses?.find((r: any) => r.fieldId === f.id);
+                                                    let val = resp?.value ?? '';
+                                                    if (typeof val === 'boolean') val = val ? 'YES' : 'NO';
+                                                    else if (val && typeof val === 'object') {
+                                                        const { text, hyperlink } = val;
+                                                        if (text && hyperlink) val = text;
+                                                        else val = JSON.stringify(val);
+                                                    }
+                                                    return (
+                                                        <Text key={f.id} style={[styles.tableCell, { color: colors.text }]}>
+                                                            {val}
+                                                        </Text>
+                                                    );
+                                                })}
+                                                <Text style={[styles.tableCell, { color: colors.text }]}>
+                                                    {row.visitorCount ?? 0}
                                                 </Text>
-                                            );
-                                        })}
-                                        <Text style={[styles.tableCell, { color: colors.text }]}>
-                                            {row.visitorCount ?? 0}
-                                        </Text>
-                                        <Text style={[styles.tableCell, { color: colors.secondaryText }]}>
-                                            {row.entryTime?.length
-                                                ? new Date(row.entryTime[0]).toLocaleTimeString()
-                                                : '—'}
-                                        </Text>
-                                        <Text style={[styles.tableCell, { color: colors.secondaryText }]}>
-                                            {row.exitTime?.length
-                                                ? new Date(row.exitTime[0]).toLocaleTimeString()
-                                                : '—'}
-                                        </Text>
-                                        <Text style={[
-                                            styles.tableCell,
-                                            {
-                                                color: row.gift == null
-                                                    ? colors.secondaryText
-                                                    : row.gift
-                                                        ? colors.button
-                                                        : colors.cancelButton,
-                                                fontWeight: 'bold'
-                                            }
-                                        ]}>
-                                            {row.gift == null ? '—' : row.gift ? 'YES' : 'NO'}
-                                        </Text>
-                                        <Text style={[
-                                            styles.tableCell,
-                                            {
-                                                color: row.food == null
-                                                    ? colors.secondaryText
-                                                    : row.food
-                                                        ? colors.button
-                                                        : colors.cancelButton,
-                                                fontWeight: 'bold'
-                                            }
-                                        ]}>
-                                            {row.food == null ? '—' : row.food ? 'YES' : 'NO'}
-                                        </Text>
-                                        <TouchableOpacity
-                                            style={[styles.qrButton, { backgroundColor: colors.button }]}
-                                            onPress={() => handleShowQRCode(row._id)}
-                                        >
-                                            <Text style={[styles.qrButtonText, { color: colors.buttonText }]}>
-                                                QR
-                                            </Text>
-                                        </TouchableOpacity>
-                                    </View>
-                                ))
-                            )}
-
+                                                <Text style={[styles.tableCell, { color: colors.secondaryText }]}>
+                                                    {row.entryTime?.length
+                                                        ? new Date(row.entryTime[0]).toLocaleTimeString()
+                                                        : '—'}
+                                                </Text>
+                                                <Text style={[styles.tableCell, { color: colors.secondaryText }]}>
+                                                    {row.exitTime?.length
+                                                        ? new Date(row.exitTime[0]).toLocaleTimeString()
+                                                        : '—'}
+                                                </Text>
+                                                <Text style={[
+                                                    styles.tableCell,
+                                                    {
+                                                        color: row.gift == null
+                                                            ? colors.secondaryText
+                                                            : row.gift
+                                                                ? colors.button
+                                                                : colors.cancelButton,
+                                                        fontWeight: 'bold'
+                                                    }
+                                                ]}>
+                                                    {row.gift == null ? '—' : row.gift ? 'YES' : 'NO'}
+                                                </Text>
+                                                <Text style={[
+                                                    styles.tableCell,
+                                                    {
+                                                        color: row.food == null
+                                                            ? colors.secondaryText
+                                                            : row.food
+                                                                ? colors.button
+                                                                : colors.cancelButton,
+                                                        fontWeight: 'bold'
+                                                    }
+                                                ]}>
+                                                    {row.food == null ? '—' : row.food ? 'YES' : 'NO'}
+                                                </Text>
+                                                <TouchableOpacity
+                                                    style={[styles.qrButton, { backgroundColor: colors.button }]}
+                                                    onPress={() => handleShowQRCode(row._id)}
+                                                >
+                                                    <Text style={[styles.qrButtonText, { color: colors.buttonText }]}>
+                                                        QR
+                                                    </Text>
+                                                </TouchableOpacity>
+                                            </View>
+                                        ))
+                                    )}
+                                </ScrollView>
+                            </View>
                         </ScrollView>
                         {/* Pagination */}
                         <View style={styles.pagination}>
@@ -349,7 +351,7 @@ export default function Participants() {
                 onClose={() => setShowQRModal(false)}
                 qrCodeUrl={qrCodeData?.qrcodeUrl}
                 qrCodeData={qrCodeData?.qrcode}
-                participantName={qrCodeData?.responses?.find(r => r.fieldId.includes('email'))?.value || 'Participant'}
+                participantName={qrCodeData?.responses?.find((r: any) => r.fieldId.includes('email'))?.value || 'Participant'}
                 ticketId={qrCodeData?.ticket?.ticketId}
                 tierName={qrCodeData?.ticket?.tierName}
             />

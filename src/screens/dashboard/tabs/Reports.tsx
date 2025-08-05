@@ -156,8 +156,14 @@ export default function Reports() {
                 return j.data;
             });
 
-        Promise.all([sumP, subsP, ticketsP])
-            .then(([sum, subs, tickets]) => {
+        const ticketTiersP = fetch(`${API_ROUTE}/api/v1/event/ticket-tiers/${eventId}`, { headers })
+            .then(r => r.json()).then(j => {
+                if (!j.success) throw new Error(j.message || 'Failed loading ticket tiers');
+                return j.data.ticket_tiers || [];
+            });
+
+        Promise.all([sumP, subsP, ticketsP, ticketTiersP])
+            .then(([sum, subs, tickets, ticketTiers]) => {
                 setSummary(sum);
                 setSubmissions(subs);
                 // setSummary(summaryData);
@@ -167,6 +173,12 @@ export default function Reports() {
                     m[t.userSubmissionId] = t.tierName.toUpperCase();
                 });
                 setTicketMap(m);
+                
+                // Add ticket tiers to summary
+                if (sum) {
+                    sum.ticketTiers = ticketTiers;
+                    setSummary(sum);
+                }
             })
             .catch(err => showSnackbar(err.message, 'error'))
             .finally(() => setLoading(false));
@@ -231,6 +243,14 @@ export default function Reports() {
                 }
             }
 
+            // Create authenticated headers
+            const headers: Record<string, string> = {
+                "Content-Type": "application/json",
+            };
+            if (token) {
+                headers["Authorization"] = `Bearer ${token}`;
+            }
+
             const url = `${API_ROUTE}/api/v1/event/report/event/${eventId}/export`;
             const fileName = `Event-Report-${eventId}-${Date.now()}.xlsx`;
             const downloadDest =
@@ -238,28 +258,29 @@ export default function Reports() {
                     ? `${RNFS.DownloadDirectoryPath}/${fileName}`
                     : `${RNFS.DocumentDirectoryPath}/${fileName}`;
 
-            const res = await RNFS.downloadFile({
-                fromUrl: url,
-                toFile: downloadDest,
-            }).promise;
-
-            if (res && res.statusCode === 200) {
-                showSnackbar('File downloaded. Now sharing...', 'success');
-                setTimeout(async () => {
-                    try {
-                        await Share.open({
-                            url: 'file://' + downloadDest,
-                            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                            title: 'Share or Save Event Report',
-                            failOnCancel: false,
-                        });
-                    } catch (e) {
-                        // If user cancels, do nothing
-                    }
-                }, 800);
-            } else {
-                showSnackbar('Download failed! Please try again.', 'error');
+            // First fetch the file with authentication headers
+            const response = await fetch(url, { headers });
+            if (!response.ok) {
+                throw new Error(`Download failed: ${response.status} ${response.statusText}`);
             }
+
+            // Get the file as text and write it
+            const fileContent = await response.text();
+            await RNFS.writeFile(downloadDest, fileContent, 'utf8');
+
+            showSnackbar('File downloaded. Now sharing...', 'success');
+            setTimeout(async () => {
+                try {
+                    await Share.open({
+                        url: 'file://' + downloadDest,
+                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                        title: 'Share or Save Event Report',
+                        failOnCancel: false,
+                    });
+                } catch (e) {
+                    // If user cancels, do nothing
+                }
+            }, 800);
         } catch (err) {
             showSnackbar('Download failed: ' + err.message, 'error');
         } finally {

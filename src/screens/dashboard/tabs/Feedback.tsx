@@ -138,7 +138,7 @@ export default function FeedbackAdmin() {
                         renderItem={({ item }) => (
                             <View style={styles.tableRow}>
                                 <Text style={[styles.tableCell, { color: colors.text }]} numberOfLines={1} ellipsizeMode="tail">
-                                    {item.user?.name || '—'}
+                                    {item.user || '—'}
                                 </Text>
                                 <Text style={[styles.tableCell, { color: colors.button }]}>{item.rating}</Text>
                                 <Text style={[styles.tableCell, { color: colors.secondaryText }]} numberOfLines={2} ellipsizeMode="tail">
