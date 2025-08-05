@@ -55,7 +55,7 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
     }, [systemTheme]);
 
     // Auth state
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [isLoggedIn, setIsLoggedIn] = useState(false); // Temporarily forced to false to show sign-up screen
     const [userId, setUserId] = useState<string | null>(null);
     const [userType, setUserType] = useState<string | null>(null);
     const [event, setEvent] = useState<string | null>("");
@@ -71,8 +71,7 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
     const changeUser = (newUserData: string | null) => setUser(newUserData);
     const changeToken = (newToken: string | null) => setToken(newToken);
 
-    // Ensure colors are always defined
-    const colors = Colors[theme] || Colors.light;
+    const colors = Colors[theme];
 
     return (
         <GlobalContext.Provider

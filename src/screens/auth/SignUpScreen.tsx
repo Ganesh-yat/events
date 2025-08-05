@@ -287,13 +287,14 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     contentContainer: {
-        flexGrow: 1,
         padding: 20,
+        paddingTop: 40,
+        paddingBottom: 40,
     },
     header: {
         alignItems: 'center',
-        marginTop: 60,
-        marginBottom: 40,
+        marginTop: 20,
+        marginBottom: 30,
     },
     title: {
         fontSize: 28,
@@ -305,7 +306,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     form: {
-        flex: 1,
+        // Removed flex: 1 to prevent extra spacing
     },
     input: {
         height: 50,

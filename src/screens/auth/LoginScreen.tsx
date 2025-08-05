@@ -191,17 +191,6 @@ const LoginScreen: React.FC = () => {
                 )}
             </TouchableOpacity>
 
-            <View style={styles.signUpContainer}>
-                <Text style={[styles.signUpText, { color: colors.secondaryText }]}>
-                    Don't have an account?{' '}
-                </Text>
-                <TouchableOpacity onPress={() => navigation.navigate('SignUp' as never)}>
-                    <Text style={[styles.signUpLink, { color: colors.button }]}>
-                        Sign Up
-                    </Text>
-                </TouchableOpacity>
-            </View>
-
             {snackbarVisible && (
                 <Animated.View
                     style={[
@@ -264,19 +253,6 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         fontWeight: '500',
         fontSize: 16,
-    },
-    signUpContainer: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginTop: 20,
-    },
-    signUpText: {
-        fontSize: 14,
-    },
-    signUpLink: {
-        fontSize: 14,
-        fontWeight: '600',
     },
     snackbar: {
         position: "absolute",
